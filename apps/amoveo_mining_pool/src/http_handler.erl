@@ -9,7 +9,8 @@ handle(Req, State) ->
     %io:fwrite("http handler got message: "),
     %io:fwrite(Data0),
     %io:fwrite("\n"),
-    Data = packer:unpack(Data0),
+	Data1 = handle_worker_id(Data0),
+    Data = packer:unpack(Data1),
     case Data of
 	{work, _, _} ->
 	    %io:fwrite("work from IP "),
@@ -31,13 +32,62 @@ doit({account, 2}) ->
     {ok, dict:fetch(total, D)};
 doit({account, Pubkey}) -> 
     accounts:balance(Pubkey);
+doit({mining_data, _, WorkerIDBin}) -> 
+	io:fwrite("Got mining_data "),
+	io:fwrite(" WorkerID "),
+	WorkerID = binary_to_list(WorkerIDBin),
+	io:fwrite(WorkerID),
+	io:fwrite("\n"),
+    {ok, [Hash, Nonce, Diff]} = 
+	mining_pool_server:problem_api_mimic(),
+    {ok, [Hash, Diff, Diff]};
 doit({mining_data, _}) -> 
     {ok, [Hash, Nonce, Diff]} = 
 	mining_pool_server:problem_api_mimic(),
     {ok, [Hash, Diff, Diff]};
 doit({mining_data}) -> 
     mining_pool_server:problem_api_mimic();
+doit({work, Nonce, Pubkey, WorkerIDBin}) ->
+    %io:fwrite("attempted work \n"),
+	io:fwrite("Got work with "),
+	io:fwrite(" WorkerID "),
+	WorkerID = binary_to_list(WorkerIDBin),
+	io:fwrite(WorkerID),
+	io:fwrite("\n"),
+    mining_pool_server:receive_work(Nonce, Pubkey, WorkerID);
 doit({work, Nonce, Pubkey}) ->
     %io:fwrite("attempted work \n"),
     mining_pool_server:receive_work(Nonce, Pubkey).
-    
+handle_worker_id(D) -> 
+	E = jiffy:decode(D),
+	K = hd(E),
+	case E of
+		[<<"mining_data">>, PubkeyWithWorkderID] ->
+			PubkeyWithWorkderIDStr = binary_to_list(PubkeyWithWorkderID),
+			IsHavePoint = string:chr(PubkeyWithWorkderIDStr, $.),
+			if
+				0 == IsHavePoint ->
+					[Pubkey, WorkerID] = [PubkeyWithWorkderIDStr, "None"];
+				true ->
+					[Pubkey, WorkerID] = string:tokens(PubkeyWithWorkderIDStr, ".")
+			end,
+			WorkerID64 = base64:encode(WorkerID),
+			O = [<<"mining_data">>, list_to_binary(Pubkey), WorkerID64],
+			jiffy:encode(O);
+		[<<"work">>, Nonce, PubkeyWithWorkderID] ->
+			PubkeyWithWorkderIDStr = binary_to_list(PubkeyWithWorkderID),
+			IsHavePoint = string:chr(PubkeyWithWorkderIDStr, $.),
+			if
+				0 == IsHavePoint ->
+					[Pubkey, WorkerID] = [PubkeyWithWorkderIDStr, "None"];
+				true ->
+					[Pubkey, WorkerID] = string:tokens(PubkeyWithWorkderIDStr, ".")
+			end,
+			WorkerID64 = base64:encode(WorkerID),
+			O = [<<"work">>, Nonce, list_to_binary(Pubkey), WorkerID64],
+			jiffy:encode(O);
+		_ ->
+			io:fwrite(K),
+			io:fwrite("   No luck \n"),
+			D
+	end.
