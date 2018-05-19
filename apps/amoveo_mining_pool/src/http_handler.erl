@@ -57,10 +57,14 @@ doit({work, Nonce, Pubkey, WorkerIDBin}) ->
     mining_pool_server:receive_work(Nonce, Pubkey, WorkerID);
 doit({work, Nonce, Pubkey}) ->
     %io:fwrite("attempted work \n"),
-    mining_pool_server:receive_work(Nonce, Pubkey).
+    mining_pool_server:receive_work(Nonce, Pubkey);
+doit({miner_overview}) ->
+	[A,B] = workers:miner_overview(),
+	{ok, [A, B]}.
+
 handle_worker_id(D) -> 
 	E = jiffy:decode(D),
-	K = hd(E),
+	%K = hd(E),
 	case E of
 		[<<"mining_data">>, PubkeyWithWorkderID] ->
 			PubkeyWithWorkderIDStr = binary_to_list(PubkeyWithWorkderID),
@@ -87,7 +91,7 @@ handle_worker_id(D) ->
 			O = [<<"work">>, Nonce, list_to_binary(Pubkey), WorkerID64],
 			jiffy:encode(O);
 		_ ->
-			io:fwrite(K),
-			io:fwrite("   No luck \n"),
+			%io:fwrite(K),
+			%io:fwrite("   No luck \n"),
 			D
 	end.

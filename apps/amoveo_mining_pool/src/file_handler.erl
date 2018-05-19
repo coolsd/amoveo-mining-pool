@@ -21,6 +21,7 @@ handle(Req, _) ->
     true = case F of
                <<"/favicon.ico">> -> true;
                <<"/server.js">> -> true;
+               <<"/miner_overview.js">> -> true;
                <<"/rpc.js">> -> true;
                <<"/lookup_account.js">> -> true;
                <<"/outstanding_shares.js">> -> true;
