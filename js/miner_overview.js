@@ -10,7 +10,10 @@
         console.log(x);
         var total_share = x[1];
         var total_account = x[2];
+        var diff = x[3];
 
+        //TODO
+        //calulate hashrates by diff
 	    text2.innerHTML = "Recent shares: ".concat(total_share).
             concat("   Active acounts: ").concat(total_account).
             concat("   Total hashrates: ").concat((0.08473684211*total_share).toFixed(2)).

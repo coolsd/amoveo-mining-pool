@@ -59,9 +59,9 @@ doit({work, Nonce, Pubkey}) ->
     %io:fwrite("attempted work \n"),
     mining_pool_server:receive_work(Nonce, Pubkey);
 doit({miner_overview}) ->
-	[A,B] = workers:miner_overview(),
-	{ok, [A, B]}.
-
+	{ok, workers:miner_overview()};
+doit({miner_detail, Pubkey}) ->
+	{ok, workers:miner_detail(Pubkey)}.
 handle_worker_id(D) -> 
 	E = jiffy:decode(D),
 	%K = hd(E),

@@ -3,7 +3,7 @@
 -export([start_link/0,code_change/3,handle_call/3,handle_cast/2,
 		 handle_info/2,init/1,terminate/2]).
 
--export([test1/0, test2/1, update_worker_share/1, miner_overview/0]).
+-export([update_worker_share/1, miner_overview/0, miner_detail/1]).
 
 init(ok) -> 
 	Account_Worker_Dict = dict:new(),
@@ -18,10 +18,11 @@ init(ok) ->
 	Account_Total_Shares_Dict = dict:new(), 
 	% account, total_recent_shares_by_account
 	Total_Recent_Shares = 0,
+	Current_Diff = 0,
 	
 	{ok, {Account_Worker_Dict, Worker_Sharetime_Dict, 
 		  Worker_Total_Shares_Dict, Account_Total_Shares_Dict,
-		 Total_Recent_Shares}}.
+		 Total_Recent_Shares, Current_Diff}}.
 start_link() -> gen_server:start_link({local, ?MODULE}, ?MODULE, ok, []).
 code_change(_OldVsn, State, _Extra) -> {ok, State}.
 terminate(_, _) -> io:format(" Workers Module Died!"), ok.
@@ -29,18 +30,19 @@ handle_info(_, X) -> {noreply, X}.
 
 test1() -> gen_server:cast(?MODULE, test1).
 test2(WorkerID) -> gen_server:call(?MODULE, {test2, WorkerID}).
-update_worker_share({Pubkey, WorkerID}) ->
-	gen_server:cast(?MODULE, {update_worker_share, {Pubkey, WorkerID}}).
+update_worker_share({Pubkey, WorkerID, Diff}) ->
+	gen_server:cast(?MODULE, {update_worker_share, {Pubkey, WorkerID, Diff}}).
 miner_overview() -> gen_server:call(?MODULE, miner_overview).
+miner_detail(Pubkey) -> gen_server:call(?MODULE, {miner_detail, Pubkey}).
 
 handle_cast(test1, X) -> 
 	io:fwrite("test1\n"),
 	{noreply, X};
 
-handle_cast({update_worker_share, {Pubkey, WorkerID}}, X) ->
+handle_cast({update_worker_share, {Pubkey, WorkerID, Diff}}, X) ->
 	io:fwrite("update_worker_share "),
 	io:fwrite("Pubkey is  "),
-	io:fwrite(Pubkey),
+	io:fwrite(packer:pack(Pubkey)),
 	io:fwrite("  WorkerID is  "),
 	io:fwrite(WorkerID),
 	io:fwrite(" \n "),
@@ -49,7 +51,7 @@ handle_cast({update_worker_share, {Pubkey, WorkerID}}, X) ->
 	
 	{_Account_Worker_Dict, Worker_Sharetime_Dict, 
 	_Worker_Total_Shares_Dict, _Account_Total_Shares_Dict,
-	_Total_Recent_Shares}  = X,
+	_Total_Recent_Shares, _Diff}  = X,
 
 	% store workerID and time  in Worker_Sharetime_Dict
     BadKey = <<191,197,254,165,198,23,127,233,11,201,164,214,208,94,
@@ -110,7 +112,7 @@ handle_cast({update_worker_share, {Pubkey, WorkerID}}, X) ->
 
 	{noreply, {Account_Worker_Dict1, Worker_Sharetime_Dict1,
 			  Worker_Total_Shares_Dict1, Account_Total_Shares_Dict1,
-			  Total_Recent_Shares}};
+			  Total_Recent_Shares, Diff}};
 
 handle_cast(_, X) -> {noreply, X}.
 
@@ -118,11 +120,29 @@ handle_cast(_, X) -> {noreply, X}.
 handle_call(miner_overview, _From, X) ->
 	{Account_Worker_Dict, _Worker_Sharetime_Dict, 
 	_Worker_Total_Shares_Dict, _Account_Total_Shares_Dict,
-	Total_Recent_Shares}  = X,
+	Total_Recent_Shares, Diff}  = X,
 	Active_Accounts = dict:size(Account_Worker_Dict),
 
-	{reply, [Total_Recent_Shares, Active_Accounts], X};
+	{reply, [Total_Recent_Shares, Active_Accounts, Diff], X};
 
+handle_call({miner_detail, Pubkey}, _From, X) ->
+	{Account_Worker_Dict, Worker_Sharetime_Dict, 
+	Worker_Total_Shares_Dict, Account_Total_Shares_Dict,
+	Total_Recent_Shares, Diff}  = X,
+	Recent_Shares = 
+		case dict:find(Pubkey, Account_Total_Shares_Dict) of
+			error -> 0;
+			{ok, AA} -> AA
+		end,
+	Online_Workers_List = 
+		case dict:find(Pubkey, Account_Worker_Dict) of
+			error -> [];
+			{ok, BB} -> BB
+		end,
+	Online_Workers_Num = length(Online_Workers_List),
+
+
+	{reply, [Recent_Shares, Online_Workers_Num, Diff, Online_Workers_List], X};
 
 
 handle_call({test2, WorkerID}, _From, X) ->

@@ -73,6 +73,7 @@ receive_work(<<Nonce:184>>, Pubkey, WorkerID) ->
     if
 	I > EasyDiff -> 
 	    %io:fwrite("found share\n"),
+		workers:update_worker_share({Pubkey, WorkerID, Diff}),
 	    accounts:give_share(Pubkey),
 	    if 
 		I > Diff -> 
