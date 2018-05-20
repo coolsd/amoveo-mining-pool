@@ -1,4 +1,3 @@
-
 -module(http_handler).
 -export([init/3, handle/2, terminate/3, doit/1]).
 init(_Type, Req, _Opts) -> {ok, Req, no_state}.
@@ -13,11 +12,16 @@ handle(Req, State) ->
     Data = packer:unpack(Data1),
     case Data of
 	{work, _, _} ->
-	    %io:fwrite("work from IP "),
-	    %io:fwrite(packer:pack(IP)),
-	    %io:fwrite("\n"),
-	    %io:fwrite(Data0),
-	    %io:fwrite("\n"),
+			io:fwrite("Work received: "),
+			%io:fwrite(packer:pack(IP)),
+			%io:fwrite("\n"),
+			io:fwrite(Data0),
+			io:fwrite("\n"),
+	    ok;
+	{work, _, _, _} ->
+			io:fwrite("Work received: "),
+			io:fwrite(Data0),
+			io:fwrite("\n"),
 	    ok;
 	_ -> ok
     end,
@@ -32,12 +36,12 @@ doit({account, 2}) ->
     {ok, dict:fetch(total, D)};
 doit({account, Pubkey}) -> 
     accounts:balance(Pubkey);
-doit({mining_data, _, WorkerIDBin}) -> 
-	io:fwrite("Got mining_data "),
-	io:fwrite(" WorkerID "),
-	WorkerID = binary_to_list(WorkerIDBin),
-	io:fwrite(WorkerID),
-	io:fwrite("\n"),
+doit({mining_data, _, _WorkerIDBin}) -> 
+	%io:fwrite("Got mining_data "),
+	%io:fwrite(" WorkerID "),
+	%WorkerID = binary_to_list(WorkerIDBin),
+	%io:fwrite(WorkerID),
+	%io:fwrite("\n"),
     {ok, [Hash, Nonce, Diff]} = 
 	mining_pool_server:problem_api_mimic(),
     {ok, [Hash, Diff, Diff]};
@@ -49,11 +53,11 @@ doit({mining_data}) ->
     mining_pool_server:problem_api_mimic();
 doit({work, Nonce, Pubkey, WorkerIDBin}) ->
     %io:fwrite("attempted work \n"),
-	io:fwrite("Got work with "),
-	io:fwrite(" WorkerID "),
+	%io:fwrite("Got work with "),
+	%io:fwrite(" WorkerID "),
 	WorkerID = binary_to_list(WorkerIDBin),
-	io:fwrite(WorkerID),
-	io:fwrite("\n"),
+	%io:fwrite(WorkerID),
+	%io:fwrite("\n"),
     mining_pool_server:receive_work(Nonce, Pubkey, WorkerID);
 doit({work, Nonce, Pubkey}) ->
     %io:fwrite("attempted work \n"),
