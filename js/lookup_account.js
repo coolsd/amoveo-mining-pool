@@ -1,7 +1,6 @@
 lookup_account1();
 function lookup_account1() {
     document.body.appendChild(document.createElement("br"));
-    document.body.appendChild(document.createElement("br"));
     var lookup_account = document.createElement("div");
     document.body.appendChild(lookup_account);
     var lookup_account_address = document.createElement("INPUT");
@@ -26,7 +25,7 @@ function lookup_account1() {
         console.log(x);
         var veo = x[2];
         var shares = x[3];
-        lookup_account.innerHTML = "veo: ".concat(veo / 100000000).concat(" shares: ").concat(shares);
+        lookup_account.innerHTML = "<h3>Account Status 账户信息</h3>veo: ".concat(veo / 100000000).concat(" shares: ").concat(shares);
     }
 
     function lookup_account_helper3(x) {
