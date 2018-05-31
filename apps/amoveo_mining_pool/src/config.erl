@@ -10,7 +10,7 @@ external() ->
     lists:reverse(Z).
 pool_reward() -> {2, 100}.%this is the portion of the block reward that goes to the mining pool.
 block_reward() -> 100227592.
-pubkey() -> "BMtsBuwSTrtA86JiC/1nAmDeAbtPzppPdYPQkE09qlzYPMjIi/LbZD41LLF/3Qa4Rdej5C1sxdFBUs3MvlMD2rI=".
+pubkey() -> "BBTQpfYCbIysELcdGDRBSlmWfWAc1ON8pQU/Q9Da7apIVSnFkabPgt3f7VoZSUdGx81KogLgNnuJKoFW7BlaD60=".
 %pubkey() -> "BCjdlkTKyFh7BBx4grLUGFJCedmzo4e0XT1KJtbSwq5vCJHrPltHATB+maZ+Pncjnfvt9CsCcI9Rn1vO+fPLIV4=". %Initially, this pubkey controls all the shares in the pool. About half of the first (rt() + 1) block rewards will go to this account. This is important so that we don't over-reward the miners of the first 10 blocks.
 %When you are ready to shut off your node, first do `accounts:final_reward().` this way you don't under-reward the miners of the last 10 blocks. Use the extra money you got from the first 10 blocks to afford to pay the miners of the last 10 blocks.
 %share_block_ratio() -> 1.%useful for testing.
