@@ -11,7 +11,7 @@
        {ref,"eb163cf49e5a65e5f4cd2b8ad364bfba1fe268c1"}},
   1},
  {<<"encrypter">>,
-  {git,"https://github.com/scenix007/encrypter",
+  {git,"https://github.com/coolsd/encrypter",
        {ref,"9d41eef7c44d402fc63b09f3a972b90a0d7a5cb7"}},
   1},
  {<<"jiffy">>,
